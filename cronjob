@@ -1,0 +1,2 @@
+* * * * * root /usr/local/bin/python /app/manage.py run_cronjobs "* * * * *" >> /var/log/cron.log 2>&1
+*/5 * * * * root /usr/local/bin/python /app/manage.py run_cronjobs "*/5 * * * *" >> /var/log/cron.log 2>&1

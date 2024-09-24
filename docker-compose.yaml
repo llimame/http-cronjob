@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    container_name: postgres_db
+    env_file:
+      - .env.db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - django_network
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    container_name: django_app
+    command: bash -c "printenv > /etc/environment && /usr/bin/supervisord -c /etc/supervisord.conf"
+    volumes:
+      - ./supervisord.conf:/etc/supervisord.conf
+      - ./cronjob:/etc/cron.d/cronjob
+      - ./src:/app
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - django_network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"  # Expose Redis on the host
+    networks:
+      - django_network
+
+volumes:
+  postgres_data:
+
+networks:
+  django_network:
+    driver: bridge
