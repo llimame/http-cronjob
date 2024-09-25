@@ -1,7 +1,5 @@
-# Dockerfile
-
 # Base image
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -24,9 +22,11 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Set the working directory in the container
 WORKDIR /app
 
+# Copy project files to the container
+COPY ./src /app/
+
 # Install Python dependencies
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy project files to the container
-COPY . /app/
+
