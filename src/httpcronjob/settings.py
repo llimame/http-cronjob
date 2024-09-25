@@ -27,7 +27,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    'https://' + os.getenv('HTTP_HOST')
+]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'  # Adjust if using a different Redis instance
