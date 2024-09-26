@@ -1,17 +1,26 @@
 from django.contrib import admin
 from .models import CronGroup, CronApp, CronJob, RequestStatistics
+from django.forms.models import BaseInlineFormSet
+
+class LimitedInlineFormSet(BaseInlineFormSet):
+    """
+    Custom InlineFormSet to limit the number of inlines displayed.
+    """
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs[:10]  # Limit to 10 instances
 
 class CronJobInline(admin.TabularInline):
     model = CronJob
     extra = 0  # No extra forms
     readonly_fields = ['uri', 'description', 'schedule', 'created_at', 'updated_at', 'created_by']  # Make fields readonly
-    max_num = 10  # Limit to 10 inlines to reduce the number of fields sent
+    max_num = 10  # Limit to 10 inlines
 
 class CronAppInline(admin.TabularInline):
     model = CronApp
     extra = 0  # No extra forms
     readonly_fields = ['name', 'url', 'created_at', 'updated_at', 'created_by']  # Make fields readonly
-    max_num = 10  # Limit to 10 inlines to reduce the number of fields sent
+    max_num = 10  # Limit to 10 inlines
 
 @admin.register(CronGroup)
 class CronGroupAdmin(admin.ModelAdmin):
@@ -34,7 +43,8 @@ class RequestStatisticsInline(admin.TabularInline):
     extra = 0
     readonly_fields = ('cronjob', 'app', 'url', 'status_code', 'response_time', 'success', 'timestamp')
     fields = readonly_fields  # Make all fields read-only
-    max_num = 10  # Limit to 10 inlines to reduce the number of fields sent
+    max_num = 10  # Limit to 10 inlines
+    formset = LimitedInlineFormSet  # Apply the custom formset
 
 @admin.register(CronApp)
 class CronAppAdmin(admin.ModelAdmin):
