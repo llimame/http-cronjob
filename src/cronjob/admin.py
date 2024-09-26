@@ -25,7 +25,13 @@ class CronGroupAdmin(admin.ModelAdmin):
     get_cron_apps.short_description = 'Cron Apps'
 
     def get_readonly_fields(self, request, obj=None):
-        return ['get_cron_jobs', 'get_cron_apps'] 
+        if obj:
+            return ['get_cron_jobs', 'get_cron_apps']
+        return []
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('jobs', 'apps')  # Optimized queryset to reduce database hits
 
 
 class RequestStatisticsInline(admin.TabularInline):
@@ -41,19 +47,24 @@ class CronAppAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        # Use select_related or prefetch_related correctly
-        return qs.prefetch_related('request_statistics')
-        
+        # Use select_related for foreign keys and prefetch_related for many-to-many relations
+        return qs.select_related('group').prefetch_related('request_statistics')
+
 @admin.register(CronJob)
 class CronJobAdmin(admin.ModelAdmin):
     list_display = ('uri', 'group', 'schedule', 'created_at', 'created_by')
     list_filter = ('group', 'created_by')
     search_fields = ('uri', 'description')
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Optimize query with select_related
+        return qs.select_related('group')
 
 @admin.register(RequestStatistics)
 class RequestStatisticsAdmin(admin.ModelAdmin):
     list_max_show_all = 10
     list_display = ('cronjob', 'url', 'status_code', 'response_time', 'success', 'timestamp')
-    search_fields = ('cronjob', 'url')
+    search_fields = ('cronjob__uri', 'url')
     list_filter = ('success', 'status_code')
+    list_per_page = 20  # Add pagination to handle large datasets
