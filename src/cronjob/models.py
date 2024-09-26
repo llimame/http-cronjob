@@ -40,11 +40,35 @@ class CronJob(models.Model):
 
     def clean(self):
         cron_patterns = [
-            r'^\* \* \* \* \*$',  # Todo minuto
-            r'^\*\/\d+ \* \* \* \*$',  # Cada X minutos
-            r'^\d+ \* \* \* \*$',  # Hora específica
-            r'^\d+ \d+ \* \* \*$',  # Dia específico
-            # Adicione mais padrões conforme necessário
+            r'^\* \* \* \* \*$',  # Every minute
+            r'^\*/\d+ \* \* \* \*$',  # Every X minutes
+            r'^\d+ \* \* \* \*$',  # Specific minute every hour
+            r'^\d+ \d+ \* \* \*$',  # Specific minute and hour every day
+            r'^\d+ \d+ \d+ \* \*$',  # Specific day of the month
+            r'^\d+ \d+ \d+ \d+ \*$',  # Specific month
+            r'^\d+ \d+ \d+ \d+ \d+$',  # Specific day of the week
+            r'^\* \d+ \* \* \*$',  # Every minute during a specific hour
+            r'^\* \* \d+ \* \*$',  # Every minute of a specific day
+            r'^\* \* \* \d+ \*$',  # Every minute of a specific month
+            r'^\* \* \* \* \d+$',  # Every minute of a specific day of the week
+            r'^\*/\d+ \d+ \* \* \*$',  # Every X minutes during a specific hour
+            r'^\*/\d+ \d+ \d+ \* \*$',  # Every X minutes during a specific day of the month
+            r'^\*/\d+ \d+ \d+ \d+ \*$',  # Every X minutes during a specific month
+            r'^\*/\d+ \d+ \d+ \d+ \d+$',  # Every X minutes on a specific day of the week
+            r'^\d+ \*/\d+ \* \* \*$',  # Specific minute every X hours
+            r'^\d+ \*/\d+ \d+ \* \*$',  # Specific minute on every X day of the month
+            r'^\d+ \*/\d+ \d+ \d+ \*$',  # Specific minute on every X month
+            r'^\d+ \*/\d+ \d+ \d+ \d+$',  # Specific minute on every X day of the week
+            r'^\*/\d+ \*/\d+ \* \* \*$',  # Every X minutes every X hours
+            r'^\*/\d+ \*/\d+ \d+ \* \*$',  # Every X minutes every X hours on specific day of the month
+            r'^\*/\d+ \*/\d+ \d+ \d+ \*$',  # Every X minutes every X hours on specific month
+            r'^\*/\d+ \*/\d+ \d+ \d+ \d+$',  # Every X minutes every X hours on specific day of the week
+            r'^\* \*/\d+ \* \* \d+$',  # Every minute every X hours on a specific day of the week
+            r'^\d+ \d+ \d+ \d+ \*/\d+$',  # Specific minute, hour, day of the month, and month every X day of the week
+            r'^\*/\d+ \*/\d+ \*/\d+ \* \*$',  # Every X minutes every X hours every X day of the month
+            r'^\*/\d+ \*/\d+ \*/\d+ \*/\d+$',  # Every X minutes every X hours every X day of the month every X day of the week
+            r'^\*/\d+ \*/\d+ \*/\d+ \*/\d+ \*/\d+$',  # Fully flexible pattern
+            # Add more patterns as necessary
         ]
 
         if not any(re.match(pattern, self.schedule) for pattern in cron_patterns) and self.schedule not in ["every minute", "every 5 minutes"]:
