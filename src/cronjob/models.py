@@ -68,6 +68,7 @@ class CronJob(models.Model):
             r'^\*/\d+ \*/\d+ \*/\d+ \* \*$',  # Every X minutes every X hours every X day of the month
             r'^\*/\d+ \*/\d+ \*/\d+ \*/\d+$',  # Every X minutes every X hours every X day of the month every X day of the week
             r'^\*/\d+ \*/\d+ \*/\d+ \*/\d+ \*/\d+$',  # Fully flexible pattern
+            r'^\d+ \d+ \* \* \d+$',
             # Add more patterns as necessary
         ]
 
