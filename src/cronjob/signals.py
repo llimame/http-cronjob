@@ -14,29 +14,15 @@ def update_cron_file(sender, instance, **kwargs):
 
 def generate_cron_file():
     """
-    Regenerate the cron file with the list of all cronjobs, preventing duplicates.
+    Regenerate the cron file with the list of all cronjobs, ensuring no duplicates.
     """
     cronjobs = CronJob.objects.all()
-    cron_dict = {}
+    cron_lines = set()  # Use a set to prevent duplicate lines
 
-    # Group cron jobs by their schedule
     for cronjob in cronjobs:
-        command = f"/usr/local/bin/python /app/manage.py run_cronjobs \"{cronjob.schedule}\" >> /var/log/cron.log 2>&1"
-        if cronjob.schedule in cron_dict:
-            cron_dict[cronjob.schedule].append(command)
-        else:
-            cron_dict[cronjob.schedule] = [command]
+        cron_line = f"{cronjob.schedule} root /usr/local/bin/python /app/manage.py run_cronjobs \"{cronjob.schedule}\" >> /var/log/cron.log 2>&1"
+        cron_lines.add(cron_line)  # Set automatically handles duplicates
 
-    cron_lines = []
-
-    # Generate unique cron lines
-    for schedule, commands in cron_dict.items():
-        combined_command = " && ".join(commands)
-        cron_line = f"{schedule} root {combined_command}"
-        cron_lines.append(cron_line)
-
-    # Write to /etc/cron.d/cronjob
-    tmp_cron_file_path = CRON_FILE_PATH + '.tmp'
-    with open(tmp_cron_file_path, 'w') as cron_file:
+    # Write directly to the cron file
+    with open(CRON_FILE_PATH, 'w') as cron_file:
         cron_file.write("\n".join(cron_lines) + "\n")
-    os.rename(tmp_cron_file_path, CRON_FILE_PATH)
