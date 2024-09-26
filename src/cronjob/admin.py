@@ -5,11 +5,13 @@ class CronJobInline(admin.TabularInline):
     model = CronJob
     extra = 0  # No extra forms
     readonly_fields = ['uri', 'description', 'schedule', 'created_at', 'updated_at', 'created_by']  # Make fields readonly
+    max_num = 10  # Limit to 10 inlines to reduce the number of fields sent
 
 class CronAppInline(admin.TabularInline):
     model = CronApp
     extra = 0  # No extra forms
     readonly_fields = ['name', 'url', 'created_at', 'updated_at', 'created_by']  # Make fields readonly
+    max_num = 10  # Limit to 10 inlines to reduce the number of fields sent
 
 @admin.register(CronGroup)
 class CronGroupAdmin(admin.ModelAdmin):
@@ -25,20 +27,14 @@ class CronGroupAdmin(admin.ModelAdmin):
     get_cron_apps.short_description = 'Cron Apps'
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return ['get_cron_jobs', 'get_cron_apps']
-        return []
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.prefetch_related('jobs', 'apps')  # Optimized queryset to reduce database hits
-
+        return ['get_cron_jobs', 'get_cron_apps'] 
 
 class RequestStatisticsInline(admin.TabularInline):
     model = RequestStatistics
     extra = 0
     readonly_fields = ('cronjob', 'app', 'url', 'status_code', 'response_time', 'success', 'timestamp')
     fields = readonly_fields  # Make all fields read-only
+    max_num = 10  # Limit to 10 inlines to reduce the number of fields sent
 
 @admin.register(CronApp)
 class CronAppAdmin(admin.ModelAdmin):
@@ -47,24 +43,17 @@ class CronAppAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        # Use select_related for foreign keys and prefetch_related for many-to-many relations
-        return qs.select_related('group').prefetch_related('request_statistics')
-
+        return qs.prefetch_related('request_statistics')  # Prefetch related data efficiently
+        
 @admin.register(CronJob)
 class CronJobAdmin(admin.ModelAdmin):
     list_display = ('uri', 'group', 'schedule', 'created_at', 'created_by')
     list_filter = ('group', 'created_by')
     search_fields = ('uri', 'description')
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        # Optimize query with select_related
-        return qs.select_related('group')
-
 @admin.register(RequestStatistics)
 class RequestStatisticsAdmin(admin.ModelAdmin):
     list_max_show_all = 10
     list_display = ('cronjob', 'url', 'status_code', 'response_time', 'success', 'timestamp')
-    search_fields = ('cronjob__uri', 'url')
+    search_fields = ('cronjob', 'url')
     list_filter = ('success', 'status_code')
-    list_per_page = 20  # Add pagination to handle large datasets
